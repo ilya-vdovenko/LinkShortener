@@ -5,7 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.contur.shortener.linkshortener.entity.Link;
+import com.contur.shortener.linkshortener.entity.Url;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,15 +24,16 @@ class LinkshortenerApplicationTests {
   @Autowired
   private ObjectMapper objectMapper;
 
-  // @Test
+  @Test
   void getLinkTest() throws Exception {
-    Link testLink = new Link();
-    testLink.setOriginal("https://github.com/ilya-vdovenko/LinkShortener");
+    Url testUrl = new Url();
+    testUrl.setId(1234567890753159L);
+    testUrl.setOriginal("https://github.com/ilya-vdovenko/LinkShortener");
     this.mockMvc.perform(post("/")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(testLink)))
+        .content(objectMapper.writeValueAsString(testUrl)))
         .andExpect(status().isOk())
         .andExpect(content().contentType("application/json"))
-        .andExpect(jsonPath("$.link").value("/l/testlink.com"));
+        .andExpect(jsonPath("$.link").value("/l/fOJqhKY0x"));
   }
 }
