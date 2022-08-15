@@ -29,4 +29,11 @@ public class UrlServiceImpl implements UrlService {
     return repository.save(url);
   }
 
+  @Override
+  public Url getOriginalUrl(String link) {
+    Long id = UrlShortener.getIdFromUniqueUrl(link);
+    LOGGER.info("Get id: {} from short link {}", id, link);
+    return repository.findById(id);
+  }
+
 }

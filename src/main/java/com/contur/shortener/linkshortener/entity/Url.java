@@ -20,10 +20,10 @@ public class Url {
   @Id
   private long id;
 
-  @Column(name = "orignal")
+  @Column
   private String original;
 
-  @Column(name = "link")
+  @Column
   private String link;
 
   {
@@ -36,11 +36,9 @@ public class Url {
 
   public void setId(long id) {
     this.id = id;
-    System.out.println("set id " + this.id);
   }
 
   public long getId() {
-    System.out.println("get id " + this.id);
     return this.id;
   }
 

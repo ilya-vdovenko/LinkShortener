@@ -10,4 +10,6 @@ public interface UrlService {
 
   Url generateAndSave(Url link);
 
+  Url getOriginalUrl(String link);
+
 }

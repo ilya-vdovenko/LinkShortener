@@ -10,4 +10,6 @@ public interface UrlRepository {
 
   Url save(Url link);
 
+  Url findById(long id);
+
 }

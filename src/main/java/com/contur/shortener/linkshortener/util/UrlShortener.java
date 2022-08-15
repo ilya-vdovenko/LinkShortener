@@ -1,39 +1,45 @@
 package com.contur.shortener.linkshortener.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * .
+ * Class for shortening and get back url.
  **/
 public class UrlShortener {
 
   private static List<Character> indexToCharTable;
+  private static HashMap<Character, Integer> charToIndexTable;
   private static final Logger LOGGER = LoggerFactory.getLogger(UrlShortener.class);
 
   static {
-    initIndexToCharTable();
+    initCharIndexTables();
   }
 
-  private static void initIndexToCharTable() {
+  private static void initCharIndexTables() {
     indexToCharTable = new ArrayList<>();
+    charToIndexTable = new HashMap<>();
     for (int i = 0; i < 26; i++) {
       char c = 'a';
       c += i;
       indexToCharTable.add(c);
+      charToIndexTable.put(c, i);
     }
     for (int i = 26; i < 52; i++) {
       char c = 'A';
       c += (i - 26);
       indexToCharTable.add(c);
+      charToIndexTable.put(c, i);
     }
     for (int i = 52; i < 62; i++) {
       char c = '0';
       c += (i - 52);
       indexToCharTable.add(c);
+      charToIndexTable.put(c, i);
     }
   }
 
@@ -66,16 +72,18 @@ public class UrlShortener {
   }
 
   /**
-   * Get original url from unique link.
+   * Get id from unique link.
    *
    * @param url unique link.
    * @return id of original link.
    */
   public static Long getIdFromUniqueUrl(String url) {
+    LOGGER.debug("Short link: {}", url);
     List<Character> base62Number = new ArrayList<>();
     for (int i = 0; i < url.length(); i++) {
       base62Number.add(url.charAt(i));
     }
+    LOGGER.debug("base62Number: {}", base62Number);
     return convertBase62ToBase10(base62Number);
   }
 
@@ -83,9 +91,12 @@ public class UrlShortener {
     long id = 0L;
     int exp = nums.size() - 1;
     for (int i = 0; i < nums.size(); i++, exp--) {
-      int base10num = indexToCharTable.get(nums.get(i));
-      id += (base10num * Math.pow(62.0, exp));
+      int base10num = charToIndexTable.get(nums.get(i));
+      LOGGER.debug("base10num: {} - {}", base10num, nums.get(i));
+      id += (base10num * (long) Math.pow(62.0, exp));
+      LOGGER.debug("id: {}", id);
     }
+    LOGGER.debug("ID of original link: {}", id);
     return id;
   }
 

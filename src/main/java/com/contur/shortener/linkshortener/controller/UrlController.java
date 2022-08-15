@@ -24,7 +24,7 @@ class UrlController {
 
   @PostMapping
   ShortLink getLink(@RequestBody Url url) {
-    LOGGER.info("Received url to shorten: " + url.getOriginal());
+    LOGGER.info("Received url to shorten: {}", url.getOriginal());
     ShortLink shortLink = new ShortLink();
     shortLink.setLink("/l/" + service.generateAndSave(url).getLink());
     return shortLink;
@@ -33,10 +33,10 @@ class UrlController {
   @GetMapping(value = "/l/{link}")
   void redirectToOriginal(@PathVariable String link,
       HttpServletResponse response) throws IOException {
-    LOGGER.info("Received shortened url to redirect: " + link);
-    // TODO: use service method for get original url.
-    // Try get hit count from cache
-    response.sendRedirect("");
+    LOGGER.info("Received shortened url: {}", link);
+    String originalLink = service.getOriginalUrl(link).getOriginal();
+    LOGGER.info("Redirect to original url: {}", originalLink);
+    response.sendRedirect(originalLink);
   }
 
   class ShortLink {
