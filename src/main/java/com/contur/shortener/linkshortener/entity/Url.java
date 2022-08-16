@@ -7,12 +7,18 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Class for storage original and new link.
  **/
 
 @Entity
+@Getter
+@Setter
+@ToString
 @Table(name = "links")
 @JsonInclude(Include.NON_NULL)
 public class Url {
@@ -26,36 +32,18 @@ public class Url {
   @Column
   private String link;
 
+  @Column
+  private int rank;
+
+  @Column
+  private long count;
+
   {
     Random randomId = new Random(System.currentTimeMillis());
     id = randomId.nextLong();
     if (id < 0) {
       id = id * (-1);
     }
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  public long getId() {
-    return this.id;
-  }
-
-  public void setOriginal(String original) {
-    this.original = original;
-  }
-
-  public String getOriginal() {
-    return original;
-  }
-
-  public void setLink(String link) {
-    this.link = link;
-  }
-
-  public String getLink() {
-    return link;
   }
 
 }
