@@ -1,7 +1,7 @@
 package com.contur.shortener.linkshortener.entity;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.util.Random;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -20,7 +20,8 @@ import lombok.ToString;
 @Setter
 @ToString
 @Table(name = "links")
-@JsonInclude(Include.NON_NULL)
+@JsonPropertyOrder({ "link", "original", "rank", "count" })
+@JsonFilter("urlFilter")
 public class Url {
 
   @Id
@@ -32,10 +33,10 @@ public class Url {
   @Column
   private String link;
 
-  @Column
+  @Column(name = "num_rank")
   private int rank;
 
-  @Column
+  @Column(name = "num_count")
   private long count;
 
   {
@@ -44,6 +45,10 @@ public class Url {
     if (id < 0) {
       id = id * (-1);
     }
+  }
+
+  public void increaseCount() {
+    count++;
   }
 
 }

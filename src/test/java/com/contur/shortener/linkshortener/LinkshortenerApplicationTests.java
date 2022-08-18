@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.contur.shortener.linkshortener.entity.Url;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -29,6 +31,10 @@ class LinkshortenerApplicationTests {
   @Autowired
   private ObjectMapper objectMapper;
 
+  private final String testLink = "fOJqhKY0x";
+  private final SimpleFilterProvider filterProvider = new SimpleFilterProvider()
+      .addFilter("urlFilter", SimpleBeanPropertyFilter.serializeAll());
+
   @Test
   @Order(1)
   void getShortLinkTest() throws Exception {
@@ -37,18 +43,30 @@ class LinkshortenerApplicationTests {
     testUrl.setOriginal("https://github.com/ilya-vdovenko/LinkShortener");
     this.mockMvc.perform(post("/")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(testUrl)))
+        .content(objectMapper.setFilterProvider(filterProvider).writeValueAsString(testUrl)))
         .andExpect(status().isOk())
         .andExpect(content().contentType("application/json"))
-        .andExpect(jsonPath("$.link").value("/l/fOJqhKY0x"));
+        .andExpect(jsonPath("$.link").value("/l/fOJqhKY0x"))
+        .andExpect(jsonPath("$.id").doesNotExist());
   }
 
   @Test
   @Order(2)
   void getOriginalUrlTest() throws Exception {
-    String testLink = "fOJqhKY0x";
     this.mockMvc.perform(get("/l/{link}", testLink))
         .andExpect(status().is3xxRedirection());
   }
 
+  @Test
+  @Order(3)
+  void getLinkStatsTest() throws Exception {
+    this.mockMvc.perform(get("/stats/{link}", testLink))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("application/json"))
+        .andExpect(jsonPath("$.original").value("https://github.com/ilya-vdovenko/LinkShortener"))
+        .andExpect(jsonPath("$.link").value("/l/fOJqhKY0x"))
+        .andExpect(jsonPath("$.rank").value("1"))
+        .andExpect(jsonPath("$.count").value("1"))
+        .andExpect(jsonPath("$.id").doesNotExist());
+  }
 }

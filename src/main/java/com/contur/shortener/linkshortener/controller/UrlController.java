@@ -2,6 +2,10 @@ package com.contur.shortener.linkshortener.controller;
 
 import com.contur.shortener.linkshortener.entity.Url;
 import com.contur.shortener.linkshortener.service.UrlService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 class UrlController {
 
+  private final String redirectPath = "/l/";
   private final UrlService service;
   private static final Logger LOGGER = LoggerFactory.getLogger(UrlController.class);
 
@@ -22,34 +27,41 @@ class UrlController {
     this.service = ls;
   }
 
-  @PostMapping
-  ShortLink getLink(@RequestBody Url url) {
+  @PostMapping(produces = "application/json")
+  String getLink(@RequestBody Url url)
+      throws JsonProcessingException {
     LOGGER.info("Received url to shorten: {}", url.getOriginal());
-    ShortLink shortLink = new ShortLink();
-    shortLink.setLink("/l/" + service.generateAndSave(url).getLink());
-    return shortLink;
+    url.setLink(redirectPath + service.generateAndSave(url).getLink());
+    return urlFilter(url, SimpleBeanPropertyFilter.filterOutAllExcept("link"));
   }
 
-  @GetMapping(value = "/l/{link}")
+  @GetMapping(value = redirectPath + "{link}")
   void redirectToOriginal(@PathVariable String link,
       HttpServletResponse response) throws IOException {
     LOGGER.info("Received shortened url: {}", link);
-    String originalLink = service.getOriginalUrl(link).getOriginal();
+    String originalLink = service.getOriginalUrl(link, true).getOriginal();
     LOGGER.info("Redirect to original url: {}", originalLink);
     response.sendRedirect(originalLink);
   }
 
-  class ShortLink {
+  @GetMapping(value = "/stats/{link}", produces = "application/json")
+  String getStatsBylink(@PathVariable String link)
+      throws JsonProcessingException {
+    LOGGER.info("Received shortened url: {}", link);
+    Url url = service.getUrlStats(link);
+    url.setLink(redirectPath + url.getLink());
+    return urlFilter(url, SimpleBeanPropertyFilter.serializeAllExcept("id"));
+  }
 
-    private String link;
-
-    public String getLink() {
-      return link;
-    }
-
-    public void setLink(String url) {
-      this.link = url;
-    }
+  private String urlFilter(Url url, SimpleBeanPropertyFilter filter)
+      throws JsonProcessingException {
+    SimpleFilterProvider filterProvider = new SimpleFilterProvider()
+        .addFilter("urlFilter", filter);
+    String jsonData = new ObjectMapper()
+        .setFilterProvider(filterProvider)
+        .writerWithDefaultPrettyPrinter()
+        .writeValueAsString(url);
+    return jsonData;
   }
 
 }

@@ -3,6 +3,8 @@ package com.contur.shortener.linkshortener.service;
 import com.contur.shortener.linkshortener.entity.Url;
 import com.contur.shortener.linkshortener.repository.UrlRepository;
 import com.contur.shortener.linkshortener.util.UrlShortener;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -30,10 +32,30 @@ public class UrlServiceImpl implements UrlService {
   }
 
   @Override
-  public Url getOriginalUrl(String link) {
+  public Url getOriginalUrl(String link, boolean update) {
     Long id = UrlShortener.getIdFromUniqueUrl(link);
     LOGGER.info("Get id: {} from short link {}", id, link);
-    return repository.findById(id);
+    Url url = repository.findById(id);
+    if (update) {
+      url.increaseCount();
+      repository.save(url);
+      LOGGER.info("Update count stats for id: {}, shortlink:{}", id, link);
+    }
+    return url;
+  }
+
+  @Override
+  public Url getUrlStats(String link) {
+    updateRank();
+    return getOriginalUrl(link, false);
+  }
+
+  private void updateRank() {
+    List<Url> urls = repository.findAllByOrderByCountDesc();
+    AtomicInteger rank = new AtomicInteger(0);
+    urls.stream().forEach(url -> url.setRank(rank.incrementAndGet()));
+    repository.saveAll(urls);
+    LOGGER.info("Update rank stats for links");
   }
 
 }
