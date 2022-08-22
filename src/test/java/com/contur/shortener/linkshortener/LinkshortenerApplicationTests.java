@@ -1,5 +1,6 @@
 package com.contur.shortener.linkshortener;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -10,6 +11,7 @@ import com.contur.shortener.linkshortener.entity.Url;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,7 +34,7 @@ class LinkshortenerApplicationTests {
   @Autowired
   private ObjectMapper objectMapper;
 
-  private final String testLink = "fOJqhKY0x";
+  private final String testPathLink = "fOJqhKY0x";
   private final SimpleFilterProvider filterProvider = new SimpleFilterProvider()
       .addFilter("urlFilter", SimpleBeanPropertyFilter.serializeAll());
 
@@ -46,27 +49,61 @@ class LinkshortenerApplicationTests {
         .content(objectMapper.setFilterProvider(filterProvider).writeValueAsString(testUrl)))
         .andExpect(status().isOk())
         .andExpect(content().contentType("application/json"))
-        .andExpect(jsonPath("$.link").value("/l/fOJqhKY0x"))
+        .andExpect(jsonPath("$.link").value("/l/" + testPathLink))
         .andExpect(jsonPath("$.id").doesNotExist());
   }
 
   @Test
   @Order(2)
   void getOriginalUrlTest() throws Exception {
-    this.mockMvc.perform(get("/l/{link}", testLink))
+    this.mockMvc.perform(get("/l/{link}", testPathLink))
         .andExpect(status().is3xxRedirection());
   }
 
   @Test
   @Order(3)
   void getLinkStatsTest() throws Exception {
-    this.mockMvc.perform(get("/stats/{link}", testLink))
+    this.mockMvc.perform(get("/stats/{link}", testPathLink))
         .andExpect(status().isOk())
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.original").value("https://github.com/ilya-vdovenko/LinkShortener"))
-        .andExpect(jsonPath("$.link").value("/l/fOJqhKY0x"))
+        .andExpect(jsonPath("$.link").value("/l/" + testPathLink))
         .andExpect(jsonPath("$.rank").value("1"))
         .andExpect(jsonPath("$.count").value("1"))
         .andExpect(jsonPath("$.id").doesNotExist());
+  }
+
+  @Test
+  @Order(4)
+  void getLinksRaitingTest() throws Exception {
+    Url testUrl2 = new Url();
+    testUrl2.setId(1139567792753659L);
+    testUrl2.setOriginal("https://github.com/ilya-vdovenko/LinkShortener?testlinks=true");
+    MvcResult result = this.mockMvc.perform(post("/")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.setFilterProvider(filterProvider).writeValueAsString(testUrl2)))
+        .andReturn();
+    String testlink = JsonPath.read(result.getResponse().getContentAsString(), "$.link");
+    int times = 3;
+    while (times > 0) {
+      this.mockMvc.perform(get(testlink));
+      times--;
+    }
+    this.mockMvc.perform(get("/stats")
+        .param("page", "1")
+        .param("count", "2"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("application/json"))
+        .andExpect(jsonPath("$.*").isArray())
+        .andExpect(jsonPath("$.*", hasSize(2)))
+        .andExpect(jsonPath("$.[0].original").value("https://github.com/ilya-vdovenko/LinkShortener?testlinks=true"))
+        .andExpect(jsonPath("$.[0].link").value(testlink))
+        .andExpect(jsonPath("$.[0].rank").value("1"))
+        .andExpect(jsonPath("$.[0].count").value(times))
+        .andExpect(jsonPath("$.[1].original").value("https://github.com/ilya-vdovenko/LinkShortener"))
+        .andExpect(jsonPath("$.[1].link").value("/l/" + testPathLink))
+        .andExpect(jsonPath("$.[1].rank").value("2"))
+        .andExpect(jsonPath("$.[1].count").value("1"));
+
   }
 }
