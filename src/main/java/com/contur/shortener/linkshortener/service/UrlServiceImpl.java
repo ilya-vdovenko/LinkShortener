@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class UrlServiceImpl implements UrlService {
 
   private final UrlRepository repository;
+  private final int maxCountPerPage = 100;
   private static final Logger LOGGER = LoggerFactory.getLogger(UrlServiceImpl.class);
 
   public UrlServiceImpl(UrlRepository rep) {
@@ -48,6 +50,16 @@ public class UrlServiceImpl implements UrlService {
   public Url getUrlStats(String link) {
     updateRank();
     return getOriginalUrl(link, false);
+  }
+
+  @Override
+  public List<Url> getUrlsRaiting(int page, int count) {
+    updateRank();
+    if (count > maxCountPerPage) {
+      count = 100;
+      LOGGER.info("Set count to {}", maxCountPerPage);
+    }
+    return repository.findAllByOrderByRankAsc(PageRequest.of(page, count));
   }
 
   private void updateRank() {

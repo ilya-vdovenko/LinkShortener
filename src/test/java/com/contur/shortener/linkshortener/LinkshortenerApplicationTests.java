@@ -90,7 +90,7 @@ class LinkshortenerApplicationTests {
       times--;
     }
     this.mockMvc.perform(get("/stats")
-        .param("page", "1")
+        .param("page", "0")
         .param("count", "2"))
         .andExpect(status().isOk())
         .andExpect(content().contentType("application/json"))
@@ -99,7 +99,7 @@ class LinkshortenerApplicationTests {
         .andExpect(jsonPath("$.[0].original").value("https://github.com/ilya-vdovenko/LinkShortener?testlinks=true"))
         .andExpect(jsonPath("$.[0].link").value(testlink))
         .andExpect(jsonPath("$.[0].rank").value("1"))
-        .andExpect(jsonPath("$.[0].count").value(times))
+        .andExpect(jsonPath("$.[0].count").value("3"))
         .andExpect(jsonPath("$.[1].original").value("https://github.com/ilya-vdovenko/LinkShortener"))
         .andExpect(jsonPath("$.[1].link").value("/l/" + testPathLink))
         .andExpect(jsonPath("$.[1].rank").value("2"))
