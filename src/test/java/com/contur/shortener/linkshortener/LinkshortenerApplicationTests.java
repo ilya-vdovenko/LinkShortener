@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.contur.shortener.linkshortener.entity.Url;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -105,5 +106,29 @@ class LinkshortenerApplicationTests {
         .andExpect(jsonPath("$.[1].rank").value("2"))
         .andExpect(jsonPath("$.[1].count").value("1"));
 
+  }
+
+  @Test
+  void validOriginalLinkTest() throws Exception {
+    Url badUrl = new Url();
+    badUrl.setOriginal("");
+    badRequest(badUrl);
+    badUrl.setOriginal("htts:20.bad_url");
+    badRequest(badUrl);
+  }
+
+  @Test
+  void validShortLinkTest() throws Exception {
+    this.mockMvc.perform(get("/l/{link}", "ndfgih85"))
+        .andExpect(status().isBadRequest());
+  }
+
+  private void badRequest(Url badUrl) throws Exception, JsonProcessingException {
+    this.mockMvc.perform(post("/")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.setFilterProvider(filterProvider).writeValueAsString(badUrl)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType("application/json"))
+        .andExpect(jsonPath("$.original").value("Please enter a valid URL"));
   }
 }

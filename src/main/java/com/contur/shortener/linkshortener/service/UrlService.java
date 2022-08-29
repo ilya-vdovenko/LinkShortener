@@ -11,7 +11,7 @@ public interface UrlService {
 
   Url generateAndSave(Url link);
 
-  Url getOriginalUrl(String link, boolean update);
+  Url getOriginalUrl(String link, boolean updateStats);
 
   Url getUrlStats(String link);
 

@@ -5,8 +5,8 @@ import com.contur.shortener.linkshortener.repository.UrlRepository;
 import com.contur.shortener.linkshortener.util.UrlShortener;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -14,12 +14,12 @@ import org.springframework.stereotype.Service;
  * Service serve as facade for all controllers.
  */
 
+@Slf4j
 @Service
 public class UrlServiceImpl implements UrlService {
 
   private final UrlRepository repository;
   private final int maxCountPerPage = 100;
-  private static final Logger LOGGER = LoggerFactory.getLogger(UrlServiceImpl.class);
 
   public UrlServiceImpl(UrlRepository rep) {
     this.repository = rep;
@@ -29,19 +29,22 @@ public class UrlServiceImpl implements UrlService {
   public Url generateAndSave(Url url) {
     String shortLink = UrlShortener.generateUniqueUrl(url.getId());
     url.setLink(shortLink);
-    LOGGER.info("Generate unique short link: {}", shortLink);
+    log.info("Generate unique short link: {}", shortLink);
     return repository.save(url);
   }
 
   @Override
-  public Url getOriginalUrl(String link, boolean update) {
+  public Url getOriginalUrl(String link, boolean updateStats) {
     Long id = UrlShortener.getIdFromUniqueUrl(link);
-    LOGGER.info("Get id: {} from short link {}", id, link);
+    log.info("Get id: {} from short link {}", id, link);
     Url url = repository.findById(id);
-    if (update) {
+    if (url == null) {
+      throw new ConstraintViolationException("Not found original link by short link " + link, null);
+    }
+    if (updateStats) {
       url.increaseCount();
       repository.save(url);
-      LOGGER.info("Update count stats for id: {}, shortlink:{}", id, link);
+      log.info("Update count stats for id: {}, shortlink:{}", id, link);
     }
     return url;
   }
@@ -57,7 +60,7 @@ public class UrlServiceImpl implements UrlService {
     updateRank();
     if (count > maxCountPerPage) {
       count = 100;
-      LOGGER.info("Set count to {}", maxCountPerPage);
+      log.info("Set count to {}", maxCountPerPage);
     }
     return repository.findAllByOrderByRankAsc(PageRequest.of(page, count));
   }
@@ -67,7 +70,7 @@ public class UrlServiceImpl implements UrlService {
     AtomicInteger rank = new AtomicInteger(0);
     urls.stream().forEach(url -> url.setRank(rank.incrementAndGet()));
     repository.saveAll(urls);
-    LOGGER.info("Update rank stats for links");
+    log.info("Update rank stats for links");
   }
 
 }

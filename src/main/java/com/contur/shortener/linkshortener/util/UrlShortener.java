@@ -4,17 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class for shortening and get back url.
  **/
+@Slf4j
 public class UrlShortener {
 
   private static List<Character> indexToCharTable;
   private static HashMap<Character, Integer> charToIndexTable;
-  private static final Logger LOGGER = LoggerFactory.getLogger(UrlShortener.class);
 
   static {
     initCharIndexTables();
@@ -50,12 +49,12 @@ public class UrlShortener {
    * @return unique link.
    */
   public static String generateUniqueUrl(long id) {
-    LOGGER.debug("ID original === {}", id);
+    log.debug("ID original === {}", id);
     List<Integer> base62digits = convertBase10ToBase62(id);
     StringBuilder url = new StringBuilder();
     for (int digit : base62digits) {
       url.append(indexToCharTable.get(digit));
-      LOGGER.debug("char: {} - {}", indexToCharTable.get(digit), digit);
+      log.debug("char: {} - {}", indexToCharTable.get(digit), digit);
     }
     return url.toString();
   }
@@ -66,7 +65,7 @@ public class UrlShortener {
       int remainder = (int) (id % 62);
       digits.addFirst(remainder);
       id /= 62;
-      LOGGER.debug("reminder {}, id after del {}", remainder, id);
+      log.debug("reminder {}, id after del {}", remainder, id);
     }
     return digits;
   }
@@ -78,12 +77,12 @@ public class UrlShortener {
    * @return id of original link.
    */
   public static Long getIdFromUniqueUrl(String url) {
-    LOGGER.debug("Short link: {}", url);
+    log.debug("Short link: {}", url);
     List<Character> base62Number = new ArrayList<>();
     for (int i = 0; i < url.length(); i++) {
       base62Number.add(url.charAt(i));
     }
-    LOGGER.debug("base62Number: {}", base62Number);
+    log.debug("base62Number: {}", base62Number);
     return convertBase62ToBase10(base62Number);
   }
 
@@ -92,11 +91,11 @@ public class UrlShortener {
     int exp = nums.size() - 1;
     for (int i = 0; i < nums.size(); i++, exp--) {
       int base10num = charToIndexTable.get(nums.get(i));
-      LOGGER.debug("base10num: {} - {}", base10num, nums.get(i));
+      log.debug("base10num: {} - {}", base10num, nums.get(i));
       id += (base10num * (long) Math.pow(62.0, exp));
-      LOGGER.debug("id: {}", id);
+      log.debug("id: {}", id);
     }
-    LOGGER.debug("ID of original link: {}", id);
+    log.debug("ID of original link: {}", id);
     return id;
   }
 

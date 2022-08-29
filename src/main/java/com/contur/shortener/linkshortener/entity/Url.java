@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -24,10 +25,15 @@ import lombok.ToString;
 @JsonFilter("urlFilter")
 public class Url {
 
+  private static final String URL_PATTERN = "^(http:\\/\\/www\\.|https:\\/\\/www\\."
+      + "|http:\\/\\/|https:\\/\\/)?[a-z0-9]+([\\-\\.]"
+      + "{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\\/.*)?$";
+
   @Id
   private long id;
 
   @Column
+  @Pattern(regexp = URL_PATTERN, message = "Please enter a valid URL")
   private String original;
 
   @Column
