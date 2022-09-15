@@ -12,11 +12,11 @@ public interface UrlRepository {
 
   Url save(Url link);
 
-  List<Url> saveAll(Iterable<Url> urls);
+  List<Url> saveAll(Iterable<Object> urls);
 
   Url findById(long id);
 
-  List<Url> findAllByOrderByCountDesc();
+  List<Object> findAllByOrderByCountDesc();
 
   List<Url> findAllByOrderByRankAsc(Pageable pageable);
 

@@ -50,7 +50,8 @@ class UrlController {
   void redirectToOriginal(@PathVariable(required = true) String link,
       HttpServletResponse response) throws IOException {
     log.info("Received shortened url: {}", link);
-    String originalLink = service.getOriginalUrl(link, true).getOriginal();
+    Url url = service.putOnCache(service.getOriginalUrl(link), link);
+    String originalLink = url.getOriginal();
     log.info("Redirect to original url: {}", originalLink);
     response.sendRedirect(originalLink);
   }

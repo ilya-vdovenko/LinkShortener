@@ -27,7 +27,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestMethodOrder(OrderAnnotation.class)
-class LinkshortenerApplicationTests {
+class IntegrationAppTests {
 
   @Autowired
   private MockMvc mockMvc;

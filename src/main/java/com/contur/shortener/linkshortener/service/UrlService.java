@@ -11,10 +11,11 @@ public interface UrlService {
 
   Url generateAndSave(Url link);
 
-  Url getOriginalUrl(String link, boolean updateStats);
+  Url getOriginalUrl(String link);
 
   Url getUrlStats(String link);
 
   List<Url> getUrlsRaiting(int page, int count);
 
+  Url putOnCache(Url url, String link);
 }
