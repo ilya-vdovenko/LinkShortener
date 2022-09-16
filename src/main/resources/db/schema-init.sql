@@ -1,0 +1,7 @@
+CREATE TABLE links {
+  id BIGINT(15) UNSIGNED NOT NULL PRIMARY KEY,
+  original VARCHAR(500) NOT NULL,
+  link VARCHAR(10) NOT NULL,
+  num_rank INT(7),
+  num_count BIGINT(10)
+};
