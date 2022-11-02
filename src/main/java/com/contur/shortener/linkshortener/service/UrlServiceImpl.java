@@ -4,6 +4,7 @@ import com.contur.shortener.linkshortener.entity.Url;
 import com.contur.shortener.linkshortener.repository.UrlRepository;
 import com.contur.shortener.linkshortener.util.UrlShortener;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.validation.ConstraintViolationException;
@@ -78,15 +79,16 @@ public class UrlServiceImpl implements UrlService {
   }
 
   private void updateRank() {
-    ConcurrentMapCache cache = (ConcurrentMapCache) cacheManager.getCache("Urls");
-    Iterable<Object> cacheUrls = cache.getNativeCache().values()
-        .stream().collect(Collectors.toList());
-    repository.saveAll(cacheUrls);
-    List<Object> urls = repository.findAllByOrderByCountDesc();
-    AtomicInteger rank = new AtomicInteger(0);
-    urls.stream().forEach(url -> ((Url) url).setRank(rank.incrementAndGet()));
-    repository.saveAll(urls);
-    log.info("Update rank stats for links");
+    Optional.ofNullable(cacheManager.getCache("Urls")).ifPresent(cache -> {
+      Iterable<Object> cacheUrls = ((ConcurrentMapCache) cache).getNativeCache().values()
+          .stream().collect(Collectors.toList());
+      repository.saveAll(cacheUrls);
+      List<Object> urls = repository.findAllByOrderByCountDesc();
+      AtomicInteger rank = new AtomicInteger(0);
+      urls.stream().forEach(url -> ((Url) url).setRank(rank.incrementAndGet()));
+      repository.saveAll(urls);
+      log.info("Update rank stats for links");
+    });
   }
 
 }
