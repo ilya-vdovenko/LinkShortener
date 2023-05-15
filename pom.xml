@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.contur.shortener</groupId>
 	<artifactId>linkshortener</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>linkshortener</name>
 	<description>Link shortener project on Spring Boot</description>
 	<properties>
