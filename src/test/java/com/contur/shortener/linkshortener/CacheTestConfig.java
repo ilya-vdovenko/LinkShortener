@@ -1,6 +1,6 @@
 package com.contur.shortener.linkshortener;
 
-import com.contur.shortener.linkshortener.repository.UrlRepository;
+import com.contur.shortener.linkshortener.repository.SpringDataUrlRepository;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.core.AutoConfigureCache;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -21,8 +21,8 @@ public class CacheTestConfig {
 
   @Bean
   @Primary
-  public UrlRepository mockUrlRepository() {
-    return Mockito.mock(UrlRepository.class);
+  SpringDataUrlRepository mockUrlRepository() {
+    return Mockito.mock(SpringDataUrlRepository.class);
   }
 
 }

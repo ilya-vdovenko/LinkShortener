@@ -16,10 +16,6 @@ public class UrlShortener {
   private static HashMap<Character, Integer> charToIndexTable;
 
   static {
-    initCharIndexTables();
-  }
-
-  private static void initCharIndexTables() {
     indexToCharTable = new ArrayList<>();
     charToIndexTable = new HashMap<>();
     for (int i = 0; i < 26; i++) {

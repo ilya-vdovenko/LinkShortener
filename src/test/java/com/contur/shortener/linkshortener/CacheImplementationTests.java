@@ -6,8 +6,10 @@ import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.util.Optional;
+
 import com.contur.shortener.linkshortener.entity.Url;
-import com.contur.shortener.linkshortener.repository.UrlRepository;
+import com.contur.shortener.linkshortener.repository.SpringDataUrlRepository;
 import com.contur.shortener.linkshortener.service.UrlService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -34,7 +36,7 @@ public class CacheImplementationTests {
   private UrlService service;
 
   @Autowired
-  private UrlRepository mockRepository;
+  private SpringDataUrlRepository mockRepository;
 
   private final long id = 1234567890753159L;
   private final String testPathLink = "fOJqhKY0x";
@@ -44,7 +46,7 @@ public class CacheImplementationTests {
     Url testUrl = new Url();
     testUrl.setId(id);
     testUrl.setOriginal("https://github.com/ilya-vdovenko/LinkShortener");
-    given(mockRepository.findById(id)).willReturn(testUrl);
+    given(mockRepository.findById(id)).willReturn(Optional.of(testUrl));
   }
 
   @RepeatedTest(2)

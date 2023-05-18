@@ -1,7 +1,7 @@
 package com.contur.shortener.linkshortener.service;
 
 import com.contur.shortener.linkshortener.entity.Url;
-import com.contur.shortener.linkshortener.repository.UrlRepository;
+import com.contur.shortener.linkshortener.repository.SpringDataUrlRepository;
 import com.contur.shortener.linkshortener.util.UrlShortener;
 import java.util.List;
 import java.util.Optional;
@@ -24,11 +24,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class UrlServiceImpl implements UrlService {
 
-  private final UrlRepository repository;
+  private final SpringDataUrlRepository repository;
   private final CacheManager cacheManager;
   private final int maxCountPerPage = 100;
 
-  public UrlServiceImpl(UrlRepository rep,
+  public UrlServiceImpl(SpringDataUrlRepository rep,
       CacheManager cache) {
     this.repository = rep;
     this.cacheManager = cache;
@@ -47,11 +47,9 @@ public class UrlServiceImpl implements UrlService {
   public Url getOriginalUrl(String link) {
     Long id = UrlShortener.getIdFromUniqueUrl(link);
     log.info("Get id: {} from short link {}", id, link);
-    Url url = repository.findById(id);
-    if (url == null) {
-      throw new ConstraintViolationException("Not found original link by short link " + link, null);
-    }
-    return url;
+    Optional<Url> optionUrl = repository.findById(id);
+    return optionUrl
+        .orElseThrow(() -> new ConstraintViolationException("Not found original link by short link " + link, null));
   }
 
   @Override
@@ -80,10 +78,12 @@ public class UrlServiceImpl implements UrlService {
 
   private void updateRank() {
     Optional.ofNullable(cacheManager.getCache("Urls")).ifPresent(cache -> {
-      Iterable<Object> cacheUrls = ((ConcurrentMapCache) cache).getNativeCache().values()
-          .stream().collect(Collectors.toList());
+      List<Url> cacheUrls = ((ConcurrentMapCache) cache).getNativeCache().values()
+          .stream()
+          .map(url -> (Url) url)
+          .collect(Collectors.toList());
       repository.saveAll(cacheUrls);
-      List<Object> urls = repository.findAllByOrderByCountDesc();
+      List<Url> urls = repository.findAllByOrderByCountDesc();
       AtomicInteger rank = new AtomicInteger(0);
       urls.stream().forEach(url -> ((Url) url).setRank(rank.incrementAndGet()));
       repository.saveAll(urls);
